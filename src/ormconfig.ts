@@ -8,7 +8,7 @@ const config: DataSourceOptions = {
   password: '123',
   database: 'mediumclone',
   entities: [__dirname + '/**/*.entity{.ts,.js}'],
-  synchronize: true,
+  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
 };
 
 export default config;
