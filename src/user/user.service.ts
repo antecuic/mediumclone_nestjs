@@ -8,6 +8,7 @@ import { JWT_SECRET } from 'src/config';
 import { UserResponseInterface } from './types/userResponse.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { compare } from 'bcrypt';
+import { JwtUserPayload } from './types/jwtUserPayload.interface';
 
 @Injectable()
 export class UserService {
@@ -60,6 +61,10 @@ export class UserService {
     return user;
   }
 
+  async findById(id: number): Promise<UserEntity> {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
   private throwInvalidCredentialsError() {
     throw new HttpException(
       'Invalid credentials',
@@ -69,7 +74,11 @@ export class UserService {
 
   private generateJwt(user: UserEntity): string {
     return sign(
-      { id: user.id, username: user.username, email: user.email },
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      } as JwtUserPayload,
       JWT_SECRET,
     );
   }
