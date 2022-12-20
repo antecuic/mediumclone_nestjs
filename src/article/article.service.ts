@@ -4,6 +4,8 @@ import { UserEntity } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
 import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dto/CreateArticle.dto';
+import { ArticleResponseInterface } from './types/articleResponse.interface';
+import slugify from 'slugify';
 
 @Injectable()
 export class ArticleService {
@@ -23,10 +25,30 @@ export class ArticleService {
       article.tagList = [];
     }
 
-    article.slug = 'mrk';
+    article.slug = this.getSlug(createArticleDto.title);
 
     article.author = currentUser;
 
     return await this.articleRepository.save(article);
+  }
+
+  async findBySlug(slug: string): Promise<ArticleEntity> {
+    const article = await this.articleRepository.findOne({
+      where: { slug },
+      relations: ['author'],
+    });
+
+    return article;
+  }
+
+  buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
+    return { article };
+  }
+
+  private getSlug(title: string): string {
+    const slug = slugify(title, { lower: true });
+    const slugId = ((Math.random() * Math.pow(36, 6)) | 0).toString(36);
+
+    return `${slug}-${slugId}`;
   }
 }
