@@ -5,6 +5,8 @@ import { DeleteResult, Repository } from 'typeorm';
 import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dto/CreateArticle.dto';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
+import { ArticlesResponseInterface } from './types/articlesResponse.interface';
+import dataSource from 'src/ormdatasource';
 import slugify from 'slugify';
 
 @Injectable()
@@ -12,7 +14,55 @@ export class ArticleService {
   constructor(
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
+
+  async findAll(
+    currentUserId: number,
+    query: any,
+  ): Promise<ArticlesResponseInterface> {
+    const queryBuilder = dataSource
+      .getRepository(ArticleEntity)
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author');
+
+    if (query.tag) {
+      queryBuilder.andWhere('articles.tagList LIKE :tag', {
+        tag: `%${query.tag}`,
+      });
+    }
+
+    if (query.author) {
+      const author = await this.userRepository.findOne({
+        where: { username: query.author },
+      });
+
+      if (!author) {
+        throw new HttpException(
+          "User with provided username doesn't exist.",
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      queryBuilder.andWhere('articles.authorId = :id', { id: author.id });
+    }
+
+    queryBuilder.orderBy('articles.createdAt', 'DESC');
+
+    const articlesCount = await queryBuilder.getCount();
+
+    if (query.limit) {
+      queryBuilder.limit(query.limit);
+    }
+
+    if (query.offset) {
+      queryBuilder.offset(query.offset);
+    }
+
+    const articles = await queryBuilder.getMany();
+    return { articles, articlesCount };
+  }
 
   async createArticle(
     currentUser: UserEntity,
