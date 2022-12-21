@@ -80,4 +80,32 @@ export class ArticleController {
 
     return this.articleService.buildArticleResponse(article);
   }
+
+  @Post(':slug/favourite')
+  @UseGuards(AuthGuard)
+  async addArticleToFavourites(
+    @User('id') currentUserId: number,
+    @Param('slug') slug: string,
+  ): Promise<ArticleResponseInterface> {
+    const article = await this.articleService.addArticleToFavourites(
+      slug,
+      currentUserId,
+    );
+
+    return this.articleService.buildArticleResponse(article);
+  }
+
+  @Delete(':slug/favourite')
+  @UseGuards(AuthGuard)
+  async removeArticleFromFavourites(
+    @User('id') currentUserId: number,
+    @Param('slug') slug: string,
+  ): Promise<ArticleResponseInterface> {
+    const article = await this.articleService.removeArticleFromFavourites(
+      slug,
+      currentUserId,
+    );
+
+    return this.articleService.buildArticleResponse(article);
+  }
 }
