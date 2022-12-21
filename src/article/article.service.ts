@@ -6,7 +6,7 @@ import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dto/CreateArticle.dto';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
 import { ArticlesResponseInterface } from './types/articlesResponse.interface';
-import dataSource from 'src/ormdatasource';
+import dataSource from 'src/orm.datasource';
 import slugify from 'slugify';
 
 @Injectable()
